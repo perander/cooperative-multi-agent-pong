@@ -1,9 +1,28 @@
 import numpy as np
 import pygame
+import math
+import random
+
+
+def get_direction():
+    vertical_deviation = 25
+    horizontal_deviation = 10
+
+    valid_ranges = [
+        (horizontal_deviation, 90 - vertical_deviation),
+        (90 + vertical_deviation, 180 - horizontal_deviation),
+        (180 + horizontal_deviation, 270 - vertical_deviation),
+        (270 + vertical_deviation, 360 - horizontal_deviation),
+    ]
+
+    valid_ranges = [(math.radians(r[0]), math.radians(r[1])) for r in valid_ranges]
+
+    angle = random.uniform(*random.choice(valid_ranges))
+
+    return math.cos(angle), math.sin(angle)
 
 
 def get_small_random_value(randomizer):
-    # generates a small random value between [0, 1/100)
     return (1 / 100) * randomizer.random()
 
 
@@ -12,37 +31,59 @@ class Ball(pygame.sprite.Sprite):
         self.surf = pygame.Surface(dims)
         self.rect = self.surf.get_rect()
         self.speed_val = speed
+
+        direction = get_direction()
         self.speed = [
-            int(self.speed_val * np.cos(np.pi / 4)),
-            int(self.speed_val * np.sin(np.pi / 4)),
+            int(self.speed_val * direction[0]),
+            int(self.speed_val * direction[1]),
         ]
         self.bounce_randomness = bounce_randomness
         self.done = False
         self.hit = False
         self.randomizer = randomizer
+        # self.paddle_hits_0 = 0
+
+    def reset(self, location):
+        self.rect.center = location
+
+        direction = get_direction()
+
+        self.speed = [
+            int(self.speed_val * direction[0]),
+            int(self.speed_val * direction[1]),
+        ]
 
     def update2(self, area, p0, p1):
-        # move ball rect
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
 
+        terminated = False
+        wall = None
+        paddle_hit = False
+
+        # ball hits a wall
         if not area.contains(self.rect):
-            # bottom wall
             if self.rect.bottom > area.bottom:
+                wall = "bottom"
                 self.rect.bottom = area.bottom
                 self.speed[1] = -self.speed[1]
-            # top wall
             elif self.rect.top < area.top:
+                wall = "top"
                 self.rect.top = area.top
                 self.speed[1] = -self.speed[1]
-            # right or left walls
             else:
-                return True
+                if self.rect.left < area.left:
+                    wall = "left"
+                    terminated = True
+                    return terminated, wall, paddle_hit
+                elif self.rect.right > area.right:
+                    wall = "right"
+                    terminated = True
+                    return terminated, wall, paddle_hit
                 self.speed[0] = -self.speed[0]
 
+        # ball hits a paddle
         else:
-            # Do ball and bat collide?
-            # add some randomness
             r_val = 0
             if self.bounce_randomness:
                 r_val = get_small_random_value(self.randomizer)
@@ -50,26 +91,30 @@ class Ball(pygame.sprite.Sprite):
             # ball in left half of screen
             if self.rect.center[0] < area.center[0]:
                 is_collision, self.rect, self.speed = p0.process_collision(
-                    self.rect, self.speed, 1
+                    self.rect, self.speed, p0.location
                 )
                 if is_collision:
+                    print("hit left paddle")
                     self.speed = [
                         self.speed[0] + np.sign(self.speed[0]) * r_val,
                         self.speed[1] + np.sign(self.speed[1]) * r_val,
                     ]
+                    paddle_hit = True
+
             # ball in right half
             else:
                 is_collision, self.rect, self.speed = p1.process_collision(
-                    self.rect, self.speed, 2
+                    self.rect, self.speed, p1.location
                 )
                 if is_collision:
+                    print("hit right paddle")
                     self.speed = [
                         self.speed[0] + np.sign(self.speed[0]) * r_val,
                         self.speed[1] + np.sign(self.speed[1]) * r_val,
                     ]
+                    paddle_hit = True
 
-        return False
+        return terminated, wall, paddle_hit
 
     def draw(self, screen):
-        # screen.blit(self.surf, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect)
