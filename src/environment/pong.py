@@ -41,6 +41,41 @@ def get_state_space(height, width):
     )
 
 
+def get_rewards(wall, reward_structure):
+    rewards = {}
+    if reward_structure == "competitive":
+        if wall == "left":
+            print("hit left wall")
+            rewards["paddle_1"] = 1
+            rewards["paddle_0"] = -1
+        elif wall == "right":
+            print("hit right wall")
+            rewards["paddle_0"] = 1
+            rewards["paddle_1"] = -1
+    elif reward_structure == "cooperative":
+        if wall == "left":
+            print("hit left wall")
+            rewards["paddle_1"] = -1
+            rewards["paddle_0"] = -1
+        elif wall == "right":
+            print("hit right wall")
+            rewards["paddle_0"] = -1
+            rewards["paddle_1"] = -1
+    elif reward_structure == "pd":
+        if wall == "left":
+            print("hit left wall")
+            rewards["paddle_1"] = -2
+            rewards["paddle_0"] = 1
+        elif wall == "right":
+            print("hit right wall")
+            rewards["paddle_0"] = -2
+            rewards["paddle_1"] = 1
+    else: 
+        raise Exception(f"Reward structure should be one of the following: competitive, cooperative or pd. You gave {reward_structure}")
+    
+    return rewards
+
+
 FPS = 15
 
 
@@ -60,6 +95,7 @@ class Pong(ParallelEnv):
         render_mode=None,
         render_ratio=2,
         kernel_window_length=2,
+        reward_structure="competitive"
     ):
         super().__init__()
 
@@ -109,6 +145,8 @@ class Pong(ParallelEnv):
         self.ball = Ball(
             self.randomizer, self.ball_dims, self.ball_speed, self.bounce_randomness
         )
+
+        self.reward_structure = reward_structure
 
         self.reinit()
 
@@ -213,15 +251,10 @@ class Pong(ParallelEnv):
 
                 if self.terminate:
                     if wall:
+                        self.rewards = get_rewards(wall, self.reward_structure)
                         if wall == "left":
-                            print("hit left wall")
-                            self.rewards["paddle_1"] = 1
-                            self.rewards["paddle_0"] = -1
                             self.score_1 += 1
                         elif wall == "right":
-                            print("hit right wall")
-                            self.rewards["paddle_0"] = 1
-                            self.rewards["paddle_1"] = -1
                             self.score_0 += 1
 
                     self.ball.reset(self.area.center)

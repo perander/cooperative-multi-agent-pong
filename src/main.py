@@ -41,10 +41,14 @@ if __name__ == "__main__":
     batch_size = 32
     buffer_size = 1000000
 
+    # competitive, cooperative, pd
+    reward_structure = "competitive"
+
     env = pong.parallel_env(
         render_mode="human",
         max_cycles=max_cycles,
         bounce_randomness=True,
+        reward_structure=reward_structure,
     )
 
     env = color_reduction_v0(env)
