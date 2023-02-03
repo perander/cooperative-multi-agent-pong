@@ -49,6 +49,7 @@ if __name__ == "__main__":
         max_cycles=max_cycles,
         bounce_randomness=True,
         reward_structure=reward_structure,
+        ball_direction_randomness=0,
     )
 
     env = color_reduction_v0(env)

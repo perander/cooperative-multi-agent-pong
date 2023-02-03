@@ -4,9 +4,18 @@ import math
 import random
 
 
-def get_direction():
-    vertical_deviation = 25
-    horizontal_deviation = 10
+def get_direction(randomness):
+    max_vertical_deviation = 45
+    max_horizontal_deviation = 45
+    min_vertical_deviation = 25
+    min_horizontal_deviation = 10
+
+    vertical_deviation = max_vertical_deviation - randomness * (
+        max_vertical_deviation - min_vertical_deviation
+    )
+    horizontal_deviation = max_horizontal_deviation - randomness * (
+        max_horizontal_deviation - min_horizontal_deviation
+    )
 
     valid_ranges = [
         (horizontal_deviation, 90 - vertical_deviation),
@@ -27,17 +36,20 @@ def get_small_random_value(randomizer):
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, randomizer, dims, speed, bounce_randomness=False):
+    def __init__(
+        self, randomizer, dims, speed, bounce_randomness, ball_direction_randomness
+    ):
         self.surf = pygame.Surface(dims)
         self.rect = self.surf.get_rect()
         self.speed_val = speed
 
-        direction = get_direction()
+        direction = get_direction(ball_direction_randomness)
         self.speed = [
             int(self.speed_val * direction[0]),
             int(self.speed_val * direction[1]),
         ]
         self.bounce_randomness = bounce_randomness
+        self.ball_direction_randomness = ball_direction_randomness
         self.done = False
         self.hit = False
         self.randomizer = randomizer
@@ -46,7 +58,7 @@ class Ball(pygame.sprite.Sprite):
     def reset(self, location):
         self.rect.center = location
 
-        direction = get_direction()
+        direction = get_direction(self.ball_direction_randomness)
 
         self.speed = [
             int(self.speed_val * direction[0]),

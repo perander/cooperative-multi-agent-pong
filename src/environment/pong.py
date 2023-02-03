@@ -70,9 +70,11 @@ def get_rewards(wall, reward_structure):
             print("hit right wall")
             rewards["paddle_0"] = -2
             rewards["paddle_1"] = 1
-    else: 
-        raise Exception(f"Reward structure should be one of the following: competitive, cooperative or pd. You gave {reward_structure}")
-    
+    else:
+        raise Exception(
+            f"Reward structure should be one of the following: competitive, cooperative or pd. You gave {reward_structure}"
+        )
+
     return rewards
 
 
@@ -95,7 +97,8 @@ class Pong(ParallelEnv):
         render_mode=None,
         render_ratio=2,
         kernel_window_length=2,
-        reward_structure="competitive"
+        reward_structure="competitive",
+        ball_direction_randomness=1,
     ):
         super().__init__()
 
@@ -104,6 +107,7 @@ class Pong(ParallelEnv):
         self.ball_speed = ball_speed
         self.bounce_randomness = bounce_randomness
         self.paddle_speeds = paddle_speeds
+        self.ball_direction_randomness = ball_direction_randomness
 
         self.render_ratio = render_ratio
         self.kernel_window_length = kernel_window_length
@@ -143,7 +147,11 @@ class Pong(ParallelEnv):
         self.agents = ["paddle_0", "paddle_1"]
 
         self.ball = Ball(
-            self.randomizer, self.ball_dims, self.ball_speed, self.bounce_randomness
+            self.randomizer,
+            self.ball_dims,
+            self.ball_speed,
+            self.bounce_randomness,
+            self.ball_direction_randomness,
         )
 
         self.reward_structure = reward_structure
