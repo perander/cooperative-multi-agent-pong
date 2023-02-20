@@ -5,6 +5,17 @@ import random
 
 
 def get_direction(randomness):
+    """Return ball direction when ball is reset to the center. The default directions are 45, 135, 225 and 215 degrees, with vertical and horizontal deviations.
+
+    Args:
+        randomness (_type_): a value between 0 and 1 which sets the amount of deviation from the default directions. A higher value corresponds to more deviation.
+
+    Returns:
+        _type_: _description_
+    """
+
+    if randomness < 0 or randomness > 1:
+        raise Exception(f"Parameter randomness should be between 0 and 1. You gave {randomness}.")
     max_vertical_deviation = 45
     max_horizontal_deviation = 45
     min_vertical_deviation = 25
@@ -56,6 +67,11 @@ class Ball(pygame.sprite.Sprite):
         # self.paddle_hits_0 = 0
 
     def reset(self, location):
+        """Moves the ball to a new location and sets it's direction to a new random direction.
+
+        Args:
+            location (_type_): new ball location
+        """
         self.rect.center = location
 
         direction = get_direction(self.ball_direction_randomness)
@@ -66,6 +82,17 @@ class Ball(pygame.sprite.Sprite):
         ]
 
     def update2(self, area, p0, p1):
+        """Moves the ball one step to its current direction. Handles ball collision to walls and paddles.
+        Args:
+            area (_type_): game area
+            p0 (_type_): left paddle
+            p1 (_type_): right paddle
+
+        Returns:
+            - termination (bool): True if ball hits left or right wall, False otherwise
+            - wall (str): Either top, bottom, left or right if ball hits a wall, None otherwise
+            - paddle_hit (bool): True if ball hits either paddle, False otherwise
+        """
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
 

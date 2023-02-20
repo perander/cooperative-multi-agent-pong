@@ -9,6 +9,13 @@ class Paddle(pygame.sprite.Sprite):
         self.location = location
 
     def reset(self, location, speed, seed=None):
+        """Sets paddle to a new location, sets new speed.
+
+        Args:
+            location (_type_): new paddle location
+            speed (_type_): new paddle speed
+            seed (_type_, optional): random seed. Defaults to None.
+        """
         if self.location == "left":
             self.rect.midleft = location
         elif self.location == "right":
@@ -20,6 +27,12 @@ class Paddle(pygame.sprite.Sprite):
         pygame.draw.rect(screen, (255, 255, 255), self.rect)
 
     def update(self, area, action):
+        """Moves paddle one step to its current direction. Does not move the paddle if the move would take out of game area.
+
+        Args:
+            area (_type_): game area
+            action (_type_): movement, either 0: do not move, 1: up or 2: down.
+        """
         move = [0, 0]
         if action > 0:
             if action == 1:
@@ -32,12 +45,12 @@ class Paddle(pygame.sprite.Sprite):
                 self.rect = newpos
 
     def process_collision(self, ball_rect, ball_speed, paddle_location):
-        """Process a collision.
+        """Handles a collision with ball. Returns the new location and speed for the ball if ball and paddle collide.
 
         Args:
             ball_rect : Ball rect
-            dx, dy : Ball speed along single axis
             ball_speed : Ball speed
+            paddle_location: Paddle location
 
         Returns:
             is_collision: 1 if ball collides with paddle
