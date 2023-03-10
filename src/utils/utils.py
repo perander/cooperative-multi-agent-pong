@@ -17,3 +17,36 @@ def batchify_obs(obs, device):
     obs = torch.tensor(obs).to(device)
 
     return obs
+
+
+def get_expected_q_values(
+    non_final_mask, non_final_next_obs, batch_size, target, reward_batch, gamma, device
+):
+
+    target_values = torch.zeros(batch_size, device=device)
+    with torch.no_grad():
+        target_values[non_final_mask] = target(non_final_next_obs).max(1)[0]
+
+    expected_q_values = reward_batch + target_values * gamma
+
+    return expected_q_values
+
+
+def get_q_values(network, action_batch, obs_batch):
+    return (
+        network(obs_batch)
+        .gather(1, action_batch.unsqueeze(1).type(torch.int64))
+        .squeeze()
+    )
+
+def soft_update_target_network(network, target, tau):
+    network_state_dict = network.state_dict()
+    target_state_dict = target.state_dict()
+
+    for key in network_state_dict:
+        target_state_dict[key] = network_state_dict[key] * tau + target_state_dict[
+            key
+        ] * (1 - tau)
+    target.load_state_dict(target_state_dict)
+
+    return target
