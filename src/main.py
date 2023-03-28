@@ -14,7 +14,7 @@ if __name__ == "__main__":
     seed = 124
     torch_deterministic = True
 
-    dummy_metric = 0  # action number
+    dummy_metrics = [1, 2]  # action numbers
 
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -53,8 +53,9 @@ if __name__ == "__main__":
     ent_coef = 0.1
     vf_coef = 0.5
 
-    # competitive, cooperative, pd
+    # competitive, cooperative, pd, dummy
     reward_structure = "competitive"
+    reward_structure = "dummy"
 
     env = pong.parallel_env(
         render_mode="human",
@@ -62,6 +63,7 @@ if __name__ == "__main__":
         bounce_randomness=True,
         reward_structure=reward_structure,
         ball_direction_randomness=0.5,
+        dummy_metrics=dummy_metrics
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -191,12 +193,12 @@ if __name__ == "__main__":
                 )
                 print("step", step, f"{name} loss", loss)
                 print(
-                    f"fraction of action {dummy_metric} left",
-                    all_actions_left[-1000:].count(dummy_metric) / 1000,
+                    f"fraction of action {dummy_metrics[0]} left",
+                    all_actions_left[-1000:].count(dummy_metrics[0]) / 1000,
                 )
                 print(
-                    f"fraction of action {dummy_metric} right",
-                    all_actions_right[-1000:].count(dummy_metric) / 1000,
+                    f"fraction of action {dummy_metrics[1]} right",
+                    all_actions_right[-1000:].count(dummy_metrics[1]) / 1000,
                 )
                 print(
                     "paddle hits",
@@ -211,12 +213,12 @@ if __name__ == "__main__":
                 )
                 writer.add_scalar(
                     f"fraction of dummy action left",
-                    all_actions_left[-1000:].count(dummy_metric) / 1000,
+                    all_actions_left[-1000:].count(dummy_metrics[0]) / 1000,
                     step,
                 )
                 writer.add_scalar(
                     f"fraction of dummy action right",
-                    all_actions_right[-1000:].count(dummy_metric) / 1000,
+                    all_actions_right[-1000:].count(dummy_metrics[1]) / 1000,
                     step,
                 )
 

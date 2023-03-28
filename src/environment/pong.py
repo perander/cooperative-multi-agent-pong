@@ -70,9 +70,11 @@ def get_rewards(wall, reward_structure):
             print("hit right wall")
             rewards["paddle_0"] = -2
             rewards["paddle_1"] = 1
+    elif reward_structure == "dummy":
+        pass
     else:
         raise Exception(
-            f"Reward structure should be one of the following: competitive, cooperative or pd. You gave {reward_structure}"
+            f"Reward structure should be one of the following: competitive, cooperative, pd, or dummy. You gave {reward_structure}"
         )
 
     return rewards
@@ -99,6 +101,7 @@ class Pong(ParallelEnv):
         kernel_window_length=2,
         reward_structure="competitive",
         ball_direction_randomness=1,
+        dummy_metrics=[0,0]
     ):
         super().__init__()
 
@@ -117,6 +120,8 @@ class Pong(ParallelEnv):
 
         self.max_cycles = max_cycles
         self.randomizer = randomizer
+
+        self.dummy_metrics = dummy_metrics
 
         self.screen_width, self.screen_height = 960 // render_ratio, 560 // render_ratio
         self.paddle_dims = (20 // render_ratio, 80 // render_ratio)
@@ -240,6 +245,7 @@ class Pong(ParallelEnv):
 
     def step(self, action, agent):
         self.rewards = {a: 0 for a in self.agents}
+        # print("action in step", action, "agent", agent)
 
         if agent == self.agents[0]:
             self.p0.update(self.area, action)
@@ -255,7 +261,7 @@ class Pong(ParallelEnv):
                 terminate, wall, paddle_hit = self.ball.update2(
                     self.area, self.p0, self.p1
                 )
-                self.terminate = terminate
+                self.terminate = terminate  # hit something
 
                 if self.terminate:
                     if wall:
@@ -276,6 +282,20 @@ class Pong(ParallelEnv):
                     self.terminations[ag] = self.terminate
                     self.truncations[ag] = self.truncate
                     self.infos[ag] = score, wall, paddle_hit
+
+        # dummy rewards for debugging TODO separate
+        if self.reward_structure == "dummy":
+            self.rewards = {a: 0 for a in self.agents}
+            if agent == "paddle_0":
+                if action == self.dummy_metrics[0]:
+                    self.rewards[agent] = 1
+                else:
+                    self.rewards[agent] = -1
+            else:
+                if action == self.dummy_metrics[1]:
+                    self.rewards[agent] = 1
+                else:
+                    self.rewards[agent] = -1
 
         if self.renderOn:
             pygame.event.pump()
